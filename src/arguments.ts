@@ -1,31 +1,12 @@
 import { isNum, regexEscape } from "./utils/common"
-import { QC_Function_NAME, QC_Methods } from "./utils/constant"
+import { QC_Function_NAME } from "./utils/constant"
+import { DataType, KeyValue, PathDataType, QC_Function_Bind } from "./interface"
 
-interface KeyValue {
-    [key: string]: DataType
-}
-
-type DataType = 
-    null      | 
-    number    |
-    bigint    |
-    string    |
-    undefined |
-    KeyValue  |
-    QC_Methods|
-    Function  |
-    DataType[]
-
-type PathDataType = string | number
-
-interface QC_Function_Bind {
-    path: string
-}
 // type QuickCallArgumentType = string | number | null | undefined | bigint | KeyValue | object
 
 
 
-export function decodeArgument(arg: DataType[]): DataType {
+export function decodeArgument(arg: DataType[]): DataType[] {
     const argLen: number = arg.length
     
     // converting the regular expression for the QC method
