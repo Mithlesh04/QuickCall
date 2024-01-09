@@ -6,7 +6,8 @@
   "scripts": {
     "start": "nodemon ts-node src/index.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "packpackage": "cd dist && npm pack"
   },
   "repository": {
     "type": "git",
