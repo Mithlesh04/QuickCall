@@ -1,20 +1,25 @@
 import { encodeArgument } from "./arguments"
+import axios from "axios"
 
 interface QuickCallClient {
     [key: string]: (...args: any[]) => Promise<any>;
 }
+console.log("axios.post", axios)
 
 /**
  * @param communicationChannel http/https url where QuickCall will communicate
  */
-export function QuickCallClient(communicationChannel: string, axios: any): QuickCallClient {
+export function QuickCallClient(communicationChannel: string): QuickCallClient {
     console.log(communicationChannel)
 
     const serverCall = function (payload: object, callback: (res: object) => void) {
-        axios.post(communicationChannel, {
-            qc: payload
-        })
-            .then((data: any) => {
+        axios({
+            method: "post",
+            url: communicationChannel,
+            data: {
+                qc: payload
+            }
+        }).then((data: any) => {
                 // console.log("data = ", data)
                 callback({
                     isSuccess: true,

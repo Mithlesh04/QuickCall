@@ -1,17 +1,25 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QuickCallClient = void 0;
 const arguments_1 = require("./arguments");
+const axios_1 = __importDefault(require("axios"));
+console.log("axios.post", axios_1.default);
 /**
  * @param communicationChannel http/https url where QuickCall will communicate
  */
-function QuickCallClient(communicationChannel, axios) {
+function QuickCallClient(communicationChannel) {
     console.log(communicationChannel);
     const serverCall = function (payload, callback) {
-        axios.post(communicationChannel, {
-            qc: payload
-        })
-            .then((data) => {
+        (0, axios_1.default)({
+            method: "post",
+            url: communicationChannel,
+            data: {
+                qc: payload
+            }
+        }).then((data) => {
             // console.log("data = ", data)
             callback({
                 isSuccess: true,

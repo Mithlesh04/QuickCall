@@ -7,6 +7,7 @@ export {
     Server
 }
 
+export default QuickCallClient
 
 // import axios from "axios"
 // const qc = QuickCallClient("http://localhost:3002/quick-call", axios)
