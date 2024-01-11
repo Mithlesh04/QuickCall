@@ -46,9 +46,10 @@ export function decodeArgument(arg: DataType[]): DataType[] {
 } 
 
 
-export function encodeArgument(arg: DataType[]): DataType {
+export function encodeArgument(arg: DataType[], withCheckIsThereFunction: boolean=false): DataType[] | [ DataType[], boolean ] {
     const mainArg: DataType[] = []
     const argLen: number = arg.length
+    var isThereAnyFunction = false
     
     function mainEncoder(arg: DataType, path: PathDataType[]): DataType {
         if (arg instanceof Function) {
@@ -61,6 +62,7 @@ export function encodeArgument(arg: DataType[]): DataType {
                 }
             }
             arg = `${QC_Function_NAME}[${arg}]` // QuickCall Method
+            if(withCheckIsThereFunction)isThereAnyFunction = true;
         } else if (arg instanceof Object) {
             let newArg: any = Array.isArray(arg) ? [] : {}
             let keyMap: PathDataType[] = [...path]
@@ -78,6 +80,10 @@ export function encodeArgument(arg: DataType[]): DataType {
 
     for(let i=0; i < argLen; ++i){
         mainArg.push(mainEncoder(arg[i], [i]) as DataType)
+    }
+
+    if(withCheckIsThereFunction){
+        return [ mainArg, isThereAnyFunction ]
     }
 
     return mainArg

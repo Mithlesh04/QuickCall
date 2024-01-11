@@ -4,7 +4,6 @@ import axios from "axios"
 interface QuickCallClient {
     [key: string]: (...args: any[]) => Promise<any>;
 }
-console.log("axios.post.updated", axios)
 
 /**
  * @param communicationChannel http/https url where QuickCall will communicate
@@ -48,7 +47,8 @@ export function QuickCallClient(communicationChannel: string): QuickCallClient {
                     name: functionName,
                     arg: encodeArgument([...args])
                 }, (res: any) => {
-                    resolve(res.data.qc.return)
+                    console.log("qc_response_data", res.data.qc)
+                    resolve(res.data.qc)
                 })
             })
         }

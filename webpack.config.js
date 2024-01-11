@@ -5,8 +5,8 @@ module.exports = {
     entry: "./src/index.ts",
     output: {
         // libraryTarget: 'umd',
-        libraryTarget: "commonjs",
-        library: "QuickCall",
+        // libraryTarget: "commonjs",
+        libraryTarget: "this",
         filename: "index.js",
         path: path.resolve(__dirname, 'dist'),
     },
