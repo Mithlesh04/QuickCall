@@ -1,29 +1,45 @@
-import { isNum, regexEscape } from "./utils/common"
-import { QC_Function_NAME } from "./utils/constant"
-import { DataType, KeyValue, PathDataType, QC_Function_Bind } from "./interface"
-
-// type QuickCallArgumentType = string | number | null | undefined | bigint | KeyValue | object
+import { QuickCallMethods, decodeQuickCallSignature, encodeQuickCallSignature } from "./utils/common"
+import { DataType, KeyValue, PathDataType } from "./interface"
 
 
+function encodeDecodeQCMethods(isEncode: boolean, arg: DataType, path: PathDataType[], signature?: string): any {
+    const obj = {
+        isHandled: false,
+        value: arg,
+        path: path
+    }
+
+    if (isEncode) {
+        const handler = QuickCallMethods.find(h => h.dataType === typeof arg)
+        if (handler) {
+            handler.encode.apply(handler, [obj] as const)
+            obj.value = encodeQuickCallSignature(handler.name, obj.value as string, signature)
+            obj.isHandled = true
+        }
+    }else{
+        const sign = decodeQuickCallSignature(obj.value as string)
+        if(sign.isValid){
+            const handler = QuickCallMethods.find(h => h.name === sign.method)
+            if(handler){
+                handler.decode.apply(handler, [obj, { data: sign.data, signature: sign.signature }])
+                obj.isHandled = true
+            }
+        }
+    }
+    
+
+    return obj
+}
 
 export function decodeArgument(arg: DataType[]): DataType[] {
     const argLen: number = arg.length
     
-    // converting the regular expression for the QC method
-    const QC_Methods_Regex = new RegExp(regexEscape(QC_Function_NAME)+`\\[(.*?)\\]$`)
-
     function mainDecoder(arg: DataType, path: PathDataType[]): DataType {
         
-        if ('string' === typeof arg && arg.match(QC_Methods_Regex)) {
-            arg = function QC_Function(this: QC_Function_Bind, ...arg:any[]): void {
-                // encode the argument before sending back to server/client
-                // version 1 = no need to call the server/client again
-                // we will add this feature in upcoming version
-                console.log("decode string", this.path, arg)
-            }.bind({
-                path: arg
-            })
-        } else if (arg instanceof Object) {
+        const handler = encodeDecodeQCMethods(false, arg, path)
+        if(handler.isHandled){
+            arg = handler.value
+        }else if (arg instanceof Object) {
             let newArg: any = Array.isArray(arg) ? [] : {}
             let keyMap: PathDataType[] = [...path]
             for (let key in arg) {
@@ -46,22 +62,17 @@ export function decodeArgument(arg: DataType[]): DataType[] {
 } 
 
 
-export function encodeArgument(arg: DataType[], withCheckIsThereFunction: boolean=false): DataType[] | [ DataType[], boolean ] {
+export function encodeArgument(arg: DataType[], withCheckIsThereFunction: boolean=false, signature?: string): DataType[] | [ DataType[], boolean ] {
     const mainArg: DataType[] = []
     const argLen: number = arg.length
     var isThereAnyFunction = false
     
     function mainEncoder(arg: DataType, path: PathDataType[]): DataType {
-        if (arg instanceof Function) {
-            arg = ""
-            for (let key of path) {
-                if (isNum(key)) {
-                    arg += `[${key}]` // for array index
-                } else {
-                    arg += `.${key}` // for object key
-                }
-            }
-            arg = `${QC_Function_NAME}[${arg}]` // QuickCall Method
+        
+        const handler = encodeDecodeQCMethods(true, arg, path, signature)
+
+        if(handler.isHandled){
+            arg = handler.value
             if(withCheckIsThereFunction)isThereAnyFunction = true;
         } else if (arg instanceof Object) {
             let newArg: any = Array.isArray(arg) ? [] : {}

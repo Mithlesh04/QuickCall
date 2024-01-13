@@ -1,12 +1,12 @@
 const path = require("path")
 
 module.exports = {
-    mode: "development", //"production",
+    mode: "development", // development | production,
     entry: "./src/index.ts",
     output: {
         // libraryTarget: 'umd',
-        // libraryTarget: "commonjs",
-        libraryTarget: "this",
+        libraryTarget: "commonjs",
+        // libraryTarget: "umd",
         filename: "index.js",
         path: path.resolve(__dirname, 'dist'),
     },
@@ -26,5 +26,12 @@ module.exports = {
     },
     resolve: {
         extensions: ['.ts', '.js'],
-    }
+    },
+    devServer: {
+        static: {
+          directory: path.join(__dirname, 'public'),
+        },
+        compress: true,
+        port: 9000,
+    },
 }

@@ -4,7 +4,7 @@
   "description": "Elevate your coding experience with QuickCall, a compact powerhouse for seamless backend integration. Effortlessly call functions and define callbacks, simplifying your workflow without sacrificing precision. Dive into a world of efficiency and clarity—QuickCall redefines simplicity in coding.",
   "main": "./dist/index",
   "scripts": {
-    "start": "nodemon ts-node src/index.ts",
+    "start": "npx webpack serve",
     "build": "webpack --progress",
     "test": "jest",
     "pack": "webpack --progress & npm pack"
@@ -30,7 +30,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
     "axios": "^1.6.5"
