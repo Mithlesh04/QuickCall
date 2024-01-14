@@ -14,10 +14,17 @@
     "url": "git+https://github.com/Mithlesh04/QuickCall.git"
   },
   "keywords": [
-    "network",
-    "axios",
-    "fetch",
-    ""
+    "quickcall",
+    "networking",
+    "rpc",
+    "remote-procedure-call",
+    "client-server",
+    "backend",
+    "frontend",
+    "communication",
+    "api",
+    "integration",
+    "modularity"
   ],
   "author": "Mithlesh Kumar",
   "license": "ISC",
