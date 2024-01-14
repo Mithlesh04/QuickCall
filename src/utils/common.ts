@@ -5,6 +5,10 @@ export function isNum(str: number | string) {
     return String(str).match(ALL_deepDigITS_REGEX);
 }
 
+export function generateTransactionId(): string {
+  return Math.random().toString(28).replace(/0\./,Date.now().toString())
+}
+
 export function regexEscape(str: string) {
     return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
 }

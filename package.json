@@ -1,6 +1,6 @@
 {
   "name": "quickcall",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Elevate your coding experience with QuickCall, a compact powerhouse for seamless backend integration. Effortlessly call functions and define callbacks, simplifying your workflow without sacrificing precision. Dive into a world of efficiency and clarity—QuickCall redefines simplicity in coding.",
   "main": "./dist/index",
   "scripts": {
@@ -13,7 +13,13 @@
     "type": "git",
     "url": "git+https://github.com/Mithlesh04/QuickCall.git"
   },
-  "author": "",
+  "keywords": [
+    "network",
+    "axios",
+    "fetch",
+    ""
+  ],
+  "author": "Mithlesh Kumar",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Mithlesh04/QuickCall/issues"

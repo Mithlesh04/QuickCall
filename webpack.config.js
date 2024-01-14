@@ -1,7 +1,7 @@
 const path = require("path")
 
 module.exports = {
-    mode: "development", // development | production,
+    mode: "production", // development | production,
     entry: "./src/index.ts",
     output: {
         // libraryTarget: 'umd',

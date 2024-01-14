@@ -1,41 +1,14 @@
 import { Response, Request } from "express"
-import { DEFAULT_QC_CommunicationChannel } from "../utils/constant"
+import { DEFAULT_QC_Channel } from "../utils/constant"
 import { QCWrapper, QCgetTargetByName } from "./wrapper"
 import { AnyFunction } from "../interface"
-import { getTransactionObjById, initTransaction } from "./transaction"
-import { QC_Request_Data, QC_Transction_Storage_Stack_Interface } from "./serverCommon.td"
-import { encodeQuickCallSignature, is_QC_Signature } from "../utils/common"
+import { callServerStack, deleteTransaction, getTransactionObjById, getTransactionStack, initTransaction } from "./transaction"
+import { QC_Request_Data } from "./serverType"
+import { decodeQuickCallSignature, is_QC_Signature } from "../utils/common"
 
 
-function callQCFunction(stack: QC_Transction_Storage_Stack_Interface, stackPath: any[]){
-    return Promise.allSettled([
-        stack.target(...stack.arg)
-    ]).then((promiseObj: Array<PromiseSettledResult<any>>)=>{
 
-        if(promiseObj[0]?.status === "rejected"){
-            // * handle the error which return by QC function. use this to get the rejection reason promiseObj[0].reason
-            return 
-        }
 
-        // the data which return by QC function 
-        const funcReturnData: any = (promiseObj[0] as PromiseFulfilledResult<any> || { value: undefined /** if nothing will return then the default return type will be undefined */ } as const).value
-        
-        const returnType = typeof funcReturnData
-
-        stack.return = {
-            type: returnType,
-            target: funcReturnData,
-            action: "init",
-            arg: [],
-        }
-
-        if(returnType === "function"){
-            stackPath.push("return", "target") // modify this when return datatype will be [()=>void] list of function or any other
-            stack.return.name = encodeQuickCallSignature("QCFunction", '', stackPath.join("."))
-        }
-        
-    })
-}
 
 async function QCFunctionHandler(qcData: QC_Request_Data){
     if(qcData.action === "call"){
@@ -49,6 +22,31 @@ async function QCFunctionHandler(qcData: QC_Request_Data){
 
        if(is_QC_Signature(qcData.name)){
             // as this is the qc signature so decode the signature first and perform the action
+            const qcSignDec = decodeQuickCallSignature(qcData.name)
+            if(!qcSignDec.isValid){
+                // * return error. Invalid qc signature
+                return
+            }
+
+            if(qcSignDec.signature){
+                const stack = getTransactionStack(qcData.transactionId, qcSignDec.signature)
+                if(!stack){
+                    // * return error. stack<the function which client want to call> not available in transaction stack
+                    return
+                }
+
+                if(stack.type === "function"){
+                    stack.arg = qcData.arg || [] // * decode the argument
+                    stack.action = qcData.action
+                    const qcFunctionData = await callServerStack(stack, ["stack"])
+                    return {
+                        transactionId: qcData.transactionId,
+                        ...qcFunctionData
+                    }
+                }
+                
+            }
+
        }else{
             // if this is not the qc signature then it will be the qc wrapper function which is calling now
             // this function will always read from first stack
@@ -60,18 +58,24 @@ async function QCFunctionHandler(qcData: QC_Request_Data){
             if(transObj.stack.type === "function"){
                 transObj.stack.arg = qcData.arg || [] // * decode the argument
                 transObj.stack.action = qcData.action
-                await callQCFunction(transObj.stack, ["stack"])
+                const qcFunctionData = await callServerStack(transObj.stack, ["stack"])
+                return {
+                    transactionId: qcData.transactionId,
+                    ...qcFunctionData
+                }
             }
         
        }
 
 
     }
+
+    return undefined
 }
 
-export function RequestHandler(req: Request, res: Response){
+function RequestHandler(req: Request, res: Response){
     // req.body.data
-    const qcReqData = req.body?.data?.qc as QC_Request_Data
+    const qcReqData = req.body?.qc as QC_Request_Data
     if(qcReqData){
 
         // check if stackCount is 0 then it's mean transaction is started
@@ -94,7 +98,10 @@ export function RequestHandler(req: Request, res: Response){
                     target: targetFunObj.target,
                     arg: [], // at this point arg will be empty. once someone call this then arg will be here if provided
                     action: "init", // at this point it will be "init" when someone will call this then it will be call
-                    
+                    meta: {
+                        initializer: "server",
+                        caller: "client"
+                    }
                 }
             })
 
@@ -107,6 +114,14 @@ export function RequestHandler(req: Request, res: Response){
         }
 
         QCFunctionHandler(qcReqData)
+        .then(data=>{
+            // ! temp. Clearing the storage 
+            deleteTransaction(qcReqData.transactionId)
+            // console.log("returned obj", data)
+            res.send({
+                qc: data
+            })
+        })
         
 
     }else{
@@ -115,10 +130,10 @@ export function RequestHandler(req: Request, res: Response){
 }
 
 
-export function Server(expressApp: any, communicationChannel: string = DEFAULT_QC_CommunicationChannel): AnyFunction {
+export function Server(expressApp: any, channel: string = DEFAULT_QC_Channel): AnyFunction {
 
     // init the express route for communication
-    expressApp.use(communicationChannel, RequestHandler)
+    expressApp.use(channel, RequestHandler)
 
 
     return QCWrapper
